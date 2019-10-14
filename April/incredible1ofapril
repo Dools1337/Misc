@@ -116,7 +116,7 @@ finally
     Clear-Host
     $frames[-1] -split "`t"
     "`n"
-    "                        And you tought you could only do serious thing in Powershell"
+    "                        And you thought you could only do serious things in PowerShell"
     "                                 Nope. @Atea "
     "`n`n`n"
     $player.Stop()
