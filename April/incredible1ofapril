@@ -117,7 +117,7 @@ finally
     $frames[-1] -split "`t"
     "`n"
     "                        And you tought you could only do serious thing in Powershell"
-    "                                 Nope. "
+    "                                 Nope. @Atea "
     "`n`n`n"
     $player.Stop()
     $bgPowerShell.Dispose()
