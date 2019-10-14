@@ -1,3 +1,4 @@
+# Original Idea from Cweb on Spiceworks. 
 # PowerShell + HTML5 prototype. Needs audio. Run: iex (New-Object Net.WebClient).DownloadString("http://bit.ly/2pfTAmT")
 if($host.Name -ne "ConsoleHost")
 {
@@ -116,7 +117,7 @@ finally
     $frames[-1] -split "`t"
     "`n"
     "                        And you tought you could only do serious thing in Powershell"
-    "                                 Nope."
+    "                                 Nope. "
     "`n`n`n"
     $player.Stop()
     $bgPowerShell.Dispose()
