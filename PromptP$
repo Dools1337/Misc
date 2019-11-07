@@ -1,0 +1,204 @@
+$env:TERM = 'cygwin'
+$env:TERM = 'FRSX'
+
+$global:foregroundColor = 'white'
+$time = Get-Date
+$psVersion= $host.Version.Major
+$curUser= (Get-ChildItem Env:\USERNAME).Value
+$curComp= (Get-ChildItem Env:\COMPUTERNAME).Value
+
+
+
+# Ensure that Get-ChildItemColor is loaded
+Import-Module Get-ChildItemColor
+# Set l and ls alias to use the new Get-ChildItemColor cmdlets
+Set-Alias l Get-ChildItemColor -Option AllScope
+Set-Alias ls Get-ChildItemColorFormatWide -Option AllScope
+
+# Helper function to change directory to my development workspace
+# Change c:\ws to your usual workspace and everytime you type
+# in cws from PowerShell it will take you directly there.
+function cws { Set-Location c:\ws }
+
+# Helper function to set location to the User Profile directory
+function cuserprofile { Set-Location ~ }
+Set-Alias ~ cuserprofile -Option AllScope
+
+# Helper function to show Unicode character
+function U
+{
+    param
+    (
+        [int] $Code
+    )
+ 
+    if ((0 -le $Code) -and ($Code -le 0xFFFF))
+    {
+        return [char] $Code
+    }
+ 
+    if ((0x10000 -le $Code) -and ($Code -le 0x10FFFF))
+    {
+        return [char]::ConvertFromUtf32($Code)
+    }
+ 
+    throw "Invalid character code $Code"
+}
+
+Import-Module PSColor
+
+clear
+#Write-Host "- PowerShell V$psVersion -"
+#Write-Host
+# screenfetch
+
+Write-Host "Hello, Timour! " -foregroundColor $foregroundColor -NoNewLine; Write-Host "$([char]9829) " -foregroundColor Red
+Write-Host "Today is: $($time.ToLongDateString())"
+Write-Host "Welcome to PowerShell version: $psVersion" -foregroundColor Green
+Write-Host "$curComp" -foregroundColor Green
+Write-Host -Foreground Green "`n[ZLocation] knows about $((Get-ZLocation).Keys.Count) locations.`n"
+
+
+set-alias -name exchange -value "InsertPathtoExchangeScript here" 
+set-alias -name credential -value Get-Credential
+
+
+
+
+
+Import-Module posh-git
+Import-Module oh-my-posh
+Set-Theme Paradox
+
+
+function Get-Excuse {
+
+    <#
+    .DESCRIPTION
+    Are you out of excuses. Let powershell help you
+    #>
+
+    [CmdletBinding(SupportsShouldProcess)]
+
+    $ex = (Invoke-WebRequest http://pages.cs.wisc.edu/~ballard/bofh/excuses -OutVariable excuses).content.split([Environment]::NewLine)[(Get-Random $excuses.content.split([Environment]::NewLine).count)]
+
+    Write-Host " "
+    Write-Host "$ex" -Foregroundcolor Green
+    Write-Host " "
+
+    Add-Type -AssemblyName System.Speech
+    $SpeechSynth = New-Object System.Speech.Synthesis.SpeechSynthesizer
+    $SpeechSynth.Speak("$ex")
+}
+
+
+function Get-Weather {
+    <#
+    .Description
+    Shows weather for a location or the moon phase
+
+    .Parameter Location
+    Specify a location to get weather for
+
+    .Notes
+    For help modifying the function
+
+    http://wttr.in/:help
+
+    https://winaero.com/blog/get-weather-forecast-powershell/
+
+    .Example
+    Multiple Location Options Available
+
+    Get-Weather -Location houston+texas
+
+    paris                 # city name
+    Eiffel+tower          # any location
+    muc                   # airport code (3 letters)
+    94107                 # area codes
+    moon                  # Moon phase (add ,+US or ,+France for these cities)
+    moon@2016-10-25       # Moon phase for the date (@2016-10-25)
+
+    .Link
+    Connect-SSH
+    Enable-PSRemoting
+    Enable-Remoting
+    #>
+
+    [Cmdletbinding()]
+    Param(
+        [Parameter(Mandatory = $true)]$Location
+    )
+
+    (Invoke-WebRequest http://wttr.in/"$Location"?QF -UserAgent "curl" ).Content
+}
+
+
+function Connect-RDP {
+ 
+  param (
+    [Parameter(Mandatory=$true)]
+    $ComputerName,
+ 
+    [System.Management.Automation.Credential()]
+    $Credential
+  )
+ 
+  # take each computername and process it individually
+  $ComputerName | ForEach-Object {
+ 
+    # if the user has submitted a credential, store it
+    # safely using cmdkey.exe for the given connection
+    if ($PSBoundParameters.ContainsKey('Credential'))
+    {
+      # extract username and password from credential
+      $User = $Credential.UserName
+      $Password = $Credential.GetNetworkCredential().Password
+ 
+      # save information using cmdkey.exe
+      cmdkey.exe /generic:$_ /user:$User /pass:$Password
+    }
+ 
+    # initiate the RDP connection
+    # connection will automatically use cached credentials
+    # if there are no cached credentials, you will have to log on
+    # manually, so on first use, make sure you use -Credential to submit
+    # logon credential
+ 
+    mstsc.exe /v $_ /f
+  }
+}
+
+#need to define alias below function declaration
+set-alias -name RDP -value connect-RDP
+$adserver = "REDACTED"
+
+$Global:ProgressPreference = 'SilentlyContinue'
+
+Function Find-User {
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$true, Position=0)]
+        [string]$Username,
+
+        [Parameter(Mandatory=$true, Position=1)]
+        [string]$FileServer
+    )
+
+    Write-Output -InputObject $Username
+    Write-Output -InputObject $FileServer
+}
+
+
+
+Import-Module PoShFuck 
+Import-Module PSUtil
+
+# Chocolatey profile
+$ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+if (Test-Path($ChocolateyProfile)) {
+  Import-Module "$ChocolateyProfile"
+}
+
+
+Import-Module ZLocation
