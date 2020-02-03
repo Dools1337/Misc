@@ -1,6 +1,6 @@
 $env:TERM = 'cygwin'
 $env:TERM = 'FRSX'
-
+$DefaultUser = 'tiva'
 $global:foregroundColor = 'white'
 $time = Get-Date
 $psVersion= $host.Version.Major
@@ -43,7 +43,9 @@ function U
 
 Import-Module PSColor
 
-clear
+
+winfetch
+
 #Write-Host "- PowerShell V$psVersion -"
 #Write-Host
 # screenfetch
@@ -55,7 +57,7 @@ Write-Host "$curComp" -foregroundColor Green
 Write-Host -Foreground Green "`n[ZLocation] knows about $((Get-ZLocation).Keys.Count) locations.`n"
 
 
-set-alias -name exchange -value "InsertPathtoExchangeScript here" 
+set-alias -name exchange -value "C:\Users\tiva\Desktop\Tools\ExchangeConEmu.ps1" 
 set-alias -name credential -value Get-Credential
 
 
@@ -167,7 +169,9 @@ function Connect-RDP {
 
 #need to define alias below function declaration
 set-alias -name RDP -value connect-RDP
-$adserver = "REDACTED"
+$adserver = "10.40.104.113"
+$sms = "sonepasdk533004.one.local"
+
 
 $Global:ProgressPreference = 'SilentlyContinue'
 
@@ -186,9 +190,37 @@ Function Find-User {
 }
 
 
+function Get-Application ($gr){
+    $group = "*$gr*"
+    Get-ADGroup -Filter {name -like $group} -searchbase "OU=Applications,OU=DomainGroups,OU=IT-Services,DC=one,DC=local" | Select-Object name
+}
+function Get-PCByUser ($user){
+    $lastlogin = "Last login: $user*"
+    Get-ADComputer -Filter {description -like $lastlogin} -properties description
+}
+function ExSession {
+    $exsession = New-PSSession -ConfigurationName Microsoft.Exchange -ConnectionUri http://SONEEXCDKHOS101.one.local/PowerShell/
+    Import-PSSession $exsession
+}
+function Get-SDUserGroups ($user) {
+    $groups = Get-ADUser $user -Properties memberof | Select-Object -ExpandProperty memberof 
+    ForEach($g in $groups){
+        Get-ADGroup $g | Select-Object -ExpandProperty name     
+    }   
+}
+function Get-UserByName ($name) {
+    Get-ADUser -Filter {name -like $name}
+}
+function ADSync {
+    $dirsyncsession = new-pssession sonedscdk504001.one.local
+    Invoke-Command -Session $dirsyncsession -ScriptBlock {Import-Module -Name 'ADSync'}
+    Import-PSSession -Session $dirsyncsession -Module adsync
+    Start-ADSyncSyncCycle -PolicyType delta
+    Remove-PSSession $dirsyncsession    
+}
 
-Import-Module PoShFuck 
-Import-Module PSUtil
+
+
 
 # Chocolatey profile
 $ChocolateyProfile = "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
